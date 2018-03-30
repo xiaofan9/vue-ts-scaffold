@@ -23,7 +23,9 @@ module.exports = {
     // Set to `true` or `false` to always turn it on or off
     bundleAnalyzerReport: process.env.npm_config_report,
     // css 源码映射
-    productionSourceMap: true
+    productionSourceMap: true,
+    // 外部依赖库配置  key 库名称 value window全局变量名称
+    externals: {}
   },
   dev: {
     env: require("./dev.env"),
@@ -44,7 +46,9 @@ module.exports = {
     // (https://github.com/webpack/css-loader#sourcemaps)
     // In our experience, they generally work as expected,
     // just be aware of this issue when enabling this option.
-    cssSourceMap: true
+    cssSourceMap: true,
+    // 外部依赖库配置  key 库名称 value window全局变量名称
+    externals: {}
   },
   ts: true
 };

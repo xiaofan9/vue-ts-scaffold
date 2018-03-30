@@ -7,8 +7,7 @@
     "dev": "node build/dev-server.js",
     "start": "npm run dev",
     "build": "node build/build.js",
-    "unit":
-      "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
+    "unit": "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
     "e2e": "node test/e2e/runner.js",
     "test": "npm run unit && npm run e2e",
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs"
@@ -45,6 +44,7 @@
     "cross-env": "^5.0.1",
     "cross-spawn": "^5.0.1",
     "css-loader": "^0.28.0",
+    "ejs-loader": "^0.3.1",
     "eslint": "^3.19.0",
     "eslint-config-standard": "^10.2.1",
     "eslint-friendly-formatter": "^3.0.0",
@@ -109,7 +109,11 @@
     "node": ">= 4.0.0",
     "npm": ">= 3.0.0"
   },
-  "browserslist": ["> 1%", "last 2 versions", "not ie <= 8"],
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 8"
+  ],
   "directories": {
     "test": "test"
   },
@@ -117,7 +121,11 @@
     "type": "git",
     "url": "git+https://github.com/github.com/xiaofan9.git"
   },
-  "keywords": ["vue-ts", "typescript", "vue-typescript"],
+  "keywords": [
+    "vue-ts",
+    "typescript",
+    "vue-typescript"
+  ],
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/github.com/xiaofan9/issues"

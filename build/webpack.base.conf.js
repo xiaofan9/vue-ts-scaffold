@@ -7,6 +7,8 @@ const webpack = require("webpack");
 const os = require("os");
 const HappyPack = require("happypack");
 const happyThreadPool = HappyPack.ThreadPool({ size: os.cpus().length - 1 });
+const isProduction = process.env.NODE_ENV === "production";
+const externals = isProduction ? config.build.externals : config.dev.externals;
 
 function resolve(dir) {
   return path.join(__dirname, "..", dir);
@@ -58,10 +60,9 @@ module.exports = {
   output: {
     path: config.build.assetsRoot,
     filename: "[name].js",
-    publicPath:
-      process.env.NODE_ENV === "production"
-        ? config.build.assetsPublicPath
-        : config.dev.assetsPublicPath
+    publicPath: isProduction
+      ? config.build.assetsPublicPath
+      : config.dev.assetsPublicPath
   },
   resolve: {
     // 添加 ts，tsx 后缀
@@ -69,6 +70,9 @@ module.exports = {
     alias: {
       "@": resolve("src")
     }
+  },
+  externals: {
+    ...externals
   },
   module: {
     rules: [
@@ -108,6 +112,10 @@ module.exports = {
           limit: 10000,
           name: utils.assetsPath("fonts/[name].[hash:7].[ext]")
         }
+      },
+      {
+        test: /\.html$/,
+        loader: "ejs-loader"
       }
     ]
   },
@@ -129,19 +137,18 @@ module.exports = {
     }),
     new HappyPack({
       id: "babel",
-      loaders: ["babel-loader", "vue-loader", "ts-loader"],
+      loaders: [
+        "babel-loader",
+        "vue-loader",
+        ...(config.ts ? ["ts-loader"] : [])
+      ],
       threadPool: happyThreadPool,
       verbose: false
     }),
     new HappyPack({
       id: "styles",
       threadPool: happyThreadPool,
-      loaders: [
-        "vue-style-loader",
-        "css-loader",
-        "sass-loader",
-        "postcss-loader"
-      ],
+      loaders: ["vue-style-loader", "css-loader", "postcss-loader"],
       verbose: false
     })
   ]
