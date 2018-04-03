@@ -9,8 +9,6 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const FriendlyErrorsPlugin = require("friendly-errors-webpack-plugin");
 
-const portfinder = require("portfinder");
-
 // add hot-reload related code to entry chunks
 Object.keys(baseWebpackConfig.entry).forEach(function(name) {
   baseWebpackConfig.entry[name] = ["./build/dev-client"].concat(

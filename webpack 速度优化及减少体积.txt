@@ -1,0 +1,22 @@
+体积：
+  1、提前提取特定的第三方包（dll）,使用webpack插件 DllPlugin 和 DllReferencePlugin，当多个项目同引一个库时推荐使用（我的见解
+  2、外部引入模块（cdn，webpack配置属性externals
+  3、尽量模块化引入库/框架，lodash类库最好按需加载，lodash-webpack-plugin 和 babel-plugin-lodash 组合使用可以将全路径引用自动改为按需加载，但仍需每个用到的文件import 一遍，更可取的是，将项目所需的方法，统一引入，按需添加，组建出本地 lodash 类库，然后 export 给框架层，或者直接使用webpack ProvidePlugin 插件 让webpack 自动全局注入，懒人终极方案
+  4、确定类库引入必要性，避免引而不用
+  5、尽可能引入更合适的包
+  6、按需加载，webpack3 import("./xxx"); webpack2 () => import("./xxx");
+  7、压缩混淆并移除console
+  8、webpack3 新功能 作用域提升，摇树优化
+  参考：https://jeffjade.com/2017/08/06/124-webpack-packge-optimization-for-volume/
+
+速度：
+  1、路径尽量使用相对路径或者别名（alias
+  2、配置 resolve.modules
+    默认的配置，会采用向上递归搜索的方式去寻找，但通常项目目录里只有一个 node_modules，且是在项目根目录，为了减少搜索范围，可以直接写明 node_modules 的全路径；同样，对于别名(alias)的配置，亦当如此
+  3、设置rule每个对象的include 引用目录 exclude 排除目录，以精确。
+  4、代码压缩，开启多线程
+  5、使用happypack加速loader
+  6、设置 babel 的 cacheDirectory 为true
+  7、当确认某个模块没有其他依赖，可以使用noParse 排除。
+  8、拷贝静态文件（dll文件及static 文件夹
+  参考：https://jeffjade.com/2017/08/12/125-webpack-package-optimization-for-speed/

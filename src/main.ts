@@ -1,9 +1,9 @@
 import "babel-polyfill";
 
 import Vue from "vue";
-import App from "./App.vue";
-import router from "./router";
-import store from "./store";
+import App from "./App.1.vue";
+import router from "./router/index.ts";
+import store from "./store/index.ts";
 
 Vue.config.productionTip = false;
 

@@ -14,6 +14,8 @@ function resolve(dir) {
   return path.join(__dirname, "..", dir);
 }
 
+const provide = isProduction ? config.build.provide : config.dev.provide;
+
 // eslint 解析规则
 const eslint = () => [
   {
@@ -34,6 +36,7 @@ const ts = () => [
     test: /\.tsx?$/,
     loader: "tslint-loader",
     exclude: /node_modules/,
+    include: [resolve("src")],
     enforce: "pre",
     options: {
       failOnHint: true
@@ -42,8 +45,9 @@ const ts = () => [
   {
     test: /\.tsx?$/,
     exclude: /node_modules/,
+    include: [resolve("src")],
     use: [
-      "babel-loader",
+      "babel-loader?cacheDirectory=true",
       {
         loader: "ts-loader",
         options: { appendTsxSuffixTo: [/\.vue$/] }
@@ -69,7 +73,8 @@ module.exports = {
     extensions: [".js", ".vue", ".json", ".ts", ".tsx"],
     alias: {
       "@": resolve("src")
-    }
+    },
+    modules: [resolve("src"), resolve("node_modules")]
   },
   externals: {
     ...externals
@@ -81,7 +86,7 @@ module.exports = {
       ...(config.ts ? ts() : []),
       {
         test: /\.js$/,
-        loader: "babel-loader",
+        loader: "babel-loader?cacheDirectory=true",
         include: [resolve("src"), resolve("test")]
       },
       {
@@ -132,8 +137,9 @@ module.exports = {
     child_process: "empty"
   },
   plugins: [
+    // webpack自动引入包，并注入到全局，省略 import xxx from "xxx" 写法
     new webpack.ProvidePlugin({
-      _: "lodash"
+      ...provide
     }),
     new HappyPack({
       id: "babel",

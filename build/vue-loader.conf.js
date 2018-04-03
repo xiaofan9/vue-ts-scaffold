@@ -8,6 +8,7 @@ const sourceMapEnabled = isProduction
 
 module.exports = {
   loaders: Object.assign(
+    {},
     utils.cssLoaders({
       sourceMap: isProduction
         ? config.build.productionSourceMap
@@ -17,7 +18,7 @@ module.exports = {
     config.ts
       ? {
           ts: "ts-loader",
-          tsx: "babel-loader!ts-loader"
+          tsx: "babel-loader?cacheDirectory=true!ts-loader"
         }
       : {}
   ),
