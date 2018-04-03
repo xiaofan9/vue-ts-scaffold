@@ -1,13 +1,14 @@
 {
   "name": "vue-ts-scaffold",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "it is vue + typescript scaffold",
   "author": "xiaofan <718662552@qq.com>",
   "scripts": {
     "dev": "node build/dev-server.js",
     "start": "npm run dev",
     "build": "node build/build.js",
-    "unit": "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
+    "unit":
+      "cross-env BABEL_ENV=test karma start test/unit/karma.conf.js --single-run",
     "e2e": "node test/e2e/runner.js",
     "test": "npm run unit && npm run e2e",
     "lint": "eslint --ext .js,.vue src test/unit/specs test/e2e/specs"
@@ -111,11 +112,7 @@
     "node": ">= 4.0.0",
     "npm": ">= 3.0.0"
   },
-  "browserslist": [
-    "> 1%",
-    "last 2 versions",
-    "not ie <= 8"
-  ],
+  "browserslist": ["> 1%", "last 2 versions", "not ie <= 8"],
   "directories": {
     "test": "test"
   },
@@ -123,11 +120,7 @@
     "type": "git",
     "url": "git+https://github.com/github.com/xiaofan9.git"
   },
-  "keywords": [
-    "vue-ts",
-    "typescript",
-    "vue-typescript"
-  ],
+  "keywords": ["vue-ts", "typescript", "vue-typescript"],
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/github.com/xiaofan9/issues"
