@@ -72,9 +72,9 @@ module.exports = {
     // 添加 ts，tsx 后缀
     extensions: [".js", ".vue", ".json", ".ts", ".tsx"],
     alias: {
-      "@": resolve("src")
-    },
-    modules: [resolve("src"), resolve("node_modules")]
+      "@": resolve("src"),
+      vue$: "vue/dist/vue.esm"
+    }
   },
   externals: {
     ...externals

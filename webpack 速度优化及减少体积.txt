@@ -15,7 +15,7 @@
     默认的配置，会采用向上递归搜索的方式去寻找，但通常项目目录里只有一个 node_modules，且是在项目根目录，为了减少搜索范围，可以直接写明 node_modules 的全路径；同样，对于别名(alias)的配置，亦当如此
   3、设置rule每个对象的include 引用目录 exclude 排除目录，以精确。
   4、代码压缩，开启多线程
-  5、使用happypack加速loader
+  5、使用 happypack 加速loader
   6、设置 babel 的 cacheDirectory 为true
   7、当确认某个模块没有其他依赖，可以使用noParse 排除。
   8、拷贝静态文件（dll文件及static 文件夹
