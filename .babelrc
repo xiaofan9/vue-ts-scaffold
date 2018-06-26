@@ -21,9 +21,9 @@
   ],
   // 下面这个选项是引用插件来处理代码的转换，transform-runtime用来处理全局函数和优化babel编译
   "plugins": [
-    "lodash",
     "transform-vue-jsx",
     "transform-runtime",
+    "lodash",
     "transform-decorators-legacy"
   ],
   // 下面指的是在生成的文件中，不产生注释
@@ -34,7 +34,6 @@
     "test": {
       "presets": ["env", "stage-2"],
       // instanbul是一个用来测试转码后代码的工具
-
       "plugins": [
         "istanbul",
         "transform-vue-jsx",

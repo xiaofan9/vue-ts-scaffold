@@ -6,6 +6,7 @@ const vueLoaderConfig = require("./vue-loader.conf");
 const webpack = require("webpack");
 const isProduction = process.env.NODE_ENV === "production";
 const externals = isProduction ? config.build.externals : config.dev.externals;
+const multipage = require("./multipage");
 const { VueLoaderPlugin } = require("vue-loader");
 
 function resolve(dir) {
@@ -31,19 +32,21 @@ const eslint = () => [
 // typescript 解析规则
 const ts = () => [
   {
-    test: /\.tsx$/,
-    enforce: "pre",
+    test: /\.tsx?$/,
     loader: "tslint-loader",
+    exclude: /node_modules/,
+    include: [resolve("src")],
+    enforce: "pre",
     options: {
       failOnHint: true
-      // tsConfigFile: "../tslint.json"
     }
   },
   {
     test: /\.tsx?$/,
+    exclude: /node_modules/,
     include: [resolve("src")],
     use: [
-      "babel-loader",
+      "babel-loader?cacheDirectory=true",
       {
         loader: "ts-loader",
         options: { appendTsxSuffixTo: [/\.vue$/] }
@@ -53,10 +56,12 @@ const ts = () => [
 ];
 
 module.exports = {
-  entry: {
-    // 根据配置文件判断是否载入 ts
-    app: config.ts ? "./src/main.ts" : "./src/main.js"
-  },
+  entry: config.multipage
+    ? multipage.entry
+    : {
+        // 根据配置文件判断是否载入 ts
+        app: config.ts ? "./src/main.ts" : "./src/main.js"
+      },
   output: {
     path: config.build.assetsRoot,
     filename: "[name].js",
@@ -117,6 +122,11 @@ module.exports = {
       {
         test: /\.html$/,
         loader: "ejs-loader"
+      },
+      {
+        test: /\.xml$/,
+        loader: "xml-loader",
+        include: [resolve("src")]
       }
     ]
   },

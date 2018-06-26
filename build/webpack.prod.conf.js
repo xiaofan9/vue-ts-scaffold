@@ -10,6 +10,7 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const OptimizeCSSPlugin = require("optimize-css-assets-webpack-plugin");
 const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const multipage = require("./multipage");
 
 const env =
   process.env.NODE_ENV === "testing"
@@ -60,6 +61,15 @@ const webpackConfig = merge(baseWebpackConfig, {
           minChunks: 2,
           chunks: "async",
           name: "vendor-async"
+        },
+        common: {
+          test(chunks) {
+            return path
+              .resolve(chunks.context)
+              .includes(path.resolve(__dirname, "../src/common"));
+          },
+          chunks: "all",
+          name: "common"
         }
       }
     },
@@ -71,12 +81,6 @@ const webpackConfig = merge(baseWebpackConfig, {
     // 设置运行环境，默认设置为生产环境
     // new webpack.DefinePlugin({
     //   "process.env": env
-    // }),
-    // 旧版的独立css插件
-    // new ExtractTextPlugin({
-    //   filename: utils.assetsPath("css/[name].[chunkhash].css"),
-    //   // chunkFilename: utils.assetsPath("css/[name].[chunkhash].css")
-    //   allChunks: true
     // }),
     // extract css into its own file
     new MiniCssExtractPlugin({
@@ -106,21 +110,27 @@ const webpackConfig = merge(baseWebpackConfig, {
     // generate dist index.html with correct asset hash for caching.
     // you can customize output by editing /index.html
     // see https://github.com/ampedandwired/html-webpack-plugin
-    new HtmlWebpackPlugin({
-      filename:
-        process.env.NODE_ENV === "testing" ? "index.html" : config.build.index,
-      template: "index.html",
-      inject: true,
-      minify: {
-        removeComments: true,
-        collapseWhitespace: true,
-        removeAttributeQuotes: true
-        // more options:
-        // https://github.com/kangax/html-minifier#options-quick-reference
-      },
-      // necessary to consistently work with multiple chunks via CommonsChunkPlugin
-      chunksSortMode: "dependency"
-    }),
+    ...(config.multipage
+      ? multipage.html
+      : [
+          new HtmlWebpackPlugin({
+            filename:
+              process.env.NODE_ENV === "testing"
+                ? "index.html"
+                : config.build.index,
+            template: "index.html",
+            inject: true,
+            minify: {
+              removeComments: true,
+              collapseWhitespace: true,
+              removeAttributeQuotes: true
+              // more options:
+              // https://github.com/kangax/html-minifier#options-quick-reference
+            },
+            // necessary to consistently work with multiple chunks via CommonsChunkPlugin
+            chunksSortMode: "dependency"
+          })
+        ]),
     // keep module.id stable when vender modules does not change
     new webpack.HashedModuleIdsPlugin(),
     // 作用域提升，自动开启，已废弃使用 optimization.concatenateModules 替代 webpack.optimize.ModuleConcatenationPlugin(),

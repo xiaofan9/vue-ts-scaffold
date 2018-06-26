@@ -14,5 +14,4 @@ const srcContext = require.context(
   true,
   /^\.\/(?!((main|\.d)(\.js|\.ts))?$)(?!(.*?)\.d(\.ts)?$)/
 );
-
 srcContext.keys().forEach(srcContext);

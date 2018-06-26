@@ -11,11 +11,9 @@ module.exports = {
   },
   // https://github.com/standard/standard/blob/master/docs/RULES-en.md
   extends: "standard",
-  globals: {
-    _: true
-  },
   // required to lint *.vue files
   plugins: ["html", "vue"],
+  globals: {},
   // add your custom rules here
   rules: {
     // allow async-await

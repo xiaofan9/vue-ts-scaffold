@@ -1,16 +1,14 @@
 <template>
   <div id="app">
-    <img src="./assets/logo.png">
-    <router-view/>
+    <iframe src="index.html"></iframe>
+    <img src="../../assets/logo.png">
   </div>
 </template>
 
-<script lang="ts">
-import Vue from "vue";
-import Component from "vue-class-component";
-
-@Component({})
-export default class App extends Vue {}
+<script>
+export default {
+  name: "App"
+};
 </script>
 
 <style>

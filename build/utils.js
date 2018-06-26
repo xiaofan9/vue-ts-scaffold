@@ -48,8 +48,7 @@ exports.cssLoaders = function(options) {
     if (options.extract) {
       // return ExtractTextPlugin.extract({
       //   use: loaders,
-      //   fallback: "vue-style-loader",
-      //   publicPath: "../";
+      //   fallback: "vue-style-loader"
       // });
 
       // vue-style-loader 无法与 MiniCssExtractPlugin.loader 共用，会报错

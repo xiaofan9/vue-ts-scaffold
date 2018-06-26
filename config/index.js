@@ -32,7 +32,7 @@ module.exports = {
     port: process.env.PORT || 8080,
     host: "localhost",
     // 自动打开浏览器
-    autoOpenBrowser: false,
+    autoOpenBrowser: true,
     poll: false,
     errorOverlay: true,
     assetsSubDirectory: "",
@@ -43,7 +43,6 @@ module.exports = {
     devtool: "cheap-module-eval-source-map",
     // 显示eslint 错误到浏览器
     showEslintErrorsInOverlay: false,
-
     // CSS Sourcemaps off by default because relative paths are "buggy"
     // with this option, according to the CSS-Loader README
     // (https://github.com/webpack/css-loader#sourcemaps)
@@ -53,5 +52,6 @@ module.exports = {
     // 外部依赖库配置  key 库名称 value window全局变量名称
     externals: {}
   },
-  ts: true
+  ts: false,
+  multipage: true
 };

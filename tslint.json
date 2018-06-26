@@ -18,9 +18,11 @@
     // 空格在其他部分的设置
     "whitespace": [
       true,
-      "check-branch", // 检查分支语句（if/ else/ for/ while）后面跟着空格
+      "check-branch",
+      "check-decl",
+      "check-operator",
       "check-separator", // 要求在初始化数组的时候，相邻元素间不仅要用“,”分隔，还需要在其之后加入空格
-      "check-type" // 检查变量类型规范之前的空白
+      "check-type"
     ],
     // 引用符号规范
     "quotemark": false,
