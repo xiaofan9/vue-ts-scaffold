@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <iframe src="index.html"></iframe>
-    <img src="../../assets/logo.png">
+    <img src="./assets/logo.png">
+    <router-view/>
   </div>
 </template>
 

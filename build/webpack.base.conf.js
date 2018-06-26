@@ -6,7 +6,6 @@ const vueLoaderConfig = require("./vue-loader.conf");
 const webpack = require("webpack");
 const isProduction = process.env.NODE_ENV === "production";
 const externals = isProduction ? config.build.externals : config.dev.externals;
-const multipage = require("./multipage");
 const { VueLoaderPlugin } = require("vue-loader");
 
 function resolve(dir) {
@@ -56,12 +55,10 @@ const ts = () => [
 ];
 
 module.exports = {
-  entry: config.multipage
-    ? multipage.entry
-    : {
-        // 根据配置文件判断是否载入 ts
-        app: config.ts ? "./src/main.ts" : "./src/main.js"
-      },
+  entry: {
+    // 根据配置文件判断是否载入 ts
+    app: config.ts ? "./src/main.ts" : "./src/main.js"
+  },
   output: {
     path: config.build.assetsRoot,
     filename: "[name].js",
@@ -122,11 +119,6 @@ module.exports = {
       {
         test: /\.html$/,
         loader: "ejs-loader"
-      },
-      {
-        test: /\.xml$/,
-        loader: "xml-loader",
-        include: [resolve("src")]
       }
     ]
   },

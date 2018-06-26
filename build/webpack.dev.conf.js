@@ -7,8 +7,8 @@ const merge = require("webpack-merge");
 const baseWebpackConfig = require("./webpack.base.conf");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const FriendlyErrorsPlugin = require("friendly-errors-webpack-plugin");
 const portfinder = require("portfinder");
-const multipage = require("./multipage");
 
 const HOST = process.env.HOST;
 const PORT = process.env.PORT && Number(process.env.PORT);
@@ -58,15 +58,11 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     // 已废弃，使用optimization.noEmitOnErrors 替代，生产环境默认开启，编译错误时，跳过输出阶段，好像由于webpack-dev-server禁止了输出，开不开没关系了。
     // new webpack.NoEmitOnErrorsPlugin(),
     // https://github.com/ampedandwired/html-webpack-plugin
-    ...(config.multipage
-      ? multipage.html
-      : [
-          new HtmlWebpackPlugin({
-            filename: "index.html",
-            template: "index.html",
-            inject: true
-          })
-        ]),
+    new HtmlWebpackPlugin({
+      filename: "index.html",
+      template: "index.html",
+      inject: true
+    }),
     // 复制自定义静态文件夹
     new CopyWebpackPlugin([
       {
@@ -78,4 +74,34 @@ const devWebpackConfig = merge(baseWebpackConfig, {
   ]
 });
 
-module.exports = devWebpackConfig;
+module.exports = new Promise((resolve, reject) => {
+  portfinder.basePort = process.env.PORT || config.dev.port;
+  portfinder.getPort((err, port) => {
+    if (err) {
+      reject(err);
+    } else {
+      // publish the new Port, necessary for e2e tests
+      process.env.PORT = port;
+      // add port to devServer config
+      devWebpackConfig.devServer.port = port;
+
+      // Add FriendlyErrorsPlugin
+      devWebpackConfig.plugins.push(
+        new FriendlyErrorsPlugin({
+          compilationSuccessInfo: {
+            messages: [
+              `Your application is running here: http://${
+                devWebpackConfig.devServer.host
+              }:${port}`
+            ]
+          },
+          onErrors: config.dev.notifyOnErrors
+            ? utils.createNotifierCallback()
+            : undefined
+        })
+      );
+
+      resolve(devWebpackConfig);
+    }
+  });
+});

@@ -1,7 +1,7 @@
 <template>
   <div class="hello">
-    <p>{{msg}}</p>
-    <p>vuex 属性值：{{$store.state.test}}</p>
+    <p class="unit">{{msg}}</p>
+    <p>vuex 属性值：{{test}}</p>
     <jsx-test></jsx-test>
   </div>
 </template>
@@ -12,7 +12,8 @@ export default {
   name: "HelloWorld",
   data() {
     return {
-      msg: "这里以下的整体是路由区域"
+      msg: "unit",
+      test: this.$store.state.test
     };
   },
   components: {
@@ -21,7 +22,6 @@ export default {
 };
 </script>
 
-<!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 h1,
 h2 {

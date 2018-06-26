@@ -34,11 +34,7 @@
     "test": {
       "presets": ["env", "stage-2"],
       // instanbul是一个用来测试转码后代码的工具
-      "plugins": [
-        "istanbul",
-        "transform-vue-jsx",
-        "transform-decorators-legacy"
-      ]
+      "plugins": ["istanbul"]
     }
   }
 }
