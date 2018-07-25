@@ -69,7 +69,8 @@ const webpackConfig = merge(baseWebpackConfig, {
               .includes(path.resolve(__dirname, "../src/common"));
           },
           chunks: "all",
-          name: "common"
+          name: "common",
+          minChunks: multipage.len
         }
       }
     },

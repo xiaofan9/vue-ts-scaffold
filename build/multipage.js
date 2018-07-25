@@ -2,8 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const config = require("../config");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
-const isMoreOpt =
-  process.env.NODE_ENV === "production" || process.env.NODE_ENV === "testing";
+const isProd = process.env.NODE_ENV === "production";
 const basePath = path.resolve(__dirname, "../src");
 
 function moduleNames(path_ = "../src/module") {
@@ -15,16 +14,18 @@ let entry = {};
 let html = [];
 
 for (let module of modules) {
-  entry[module] = path.resolve(basePath, `module/${module}/main`);
+  entry[module] = isProd
+    ? ["babel-polyfill", path.resolve(basePath, `module/${module}/main`)]
+    : path.resolve(basePath, `module/${module}/main`);
 
   html.push(
     new HtmlWebpackPlugin({
-      filename: isMoreOpt
+      filename: isProd
         ? path.resolve(__dirname, `../dist/${module}.html`)
         : `${module}.html`,
       template: path.resolve(basePath, `module/${module}/index.html`),
       inject: true,
-      ...(isMoreOpt
+      ...(isProd
         ? {
             minify: {
               removeComments: true,
@@ -41,3 +42,4 @@ for (let module of modules) {
 
 exports.html = html;
 exports.entry = entry;
+exports.len = modules.length;

@@ -39,7 +39,7 @@ portfinder.getPort((err, port) => {
           messages: [
             `Your application is running here: http://${
               config.dev.host
-            }:${port}`
+            }:${port}${getPathName(config.dev.pathName)}`
           ]
         },
         onErrors: config.dev.notifyOnErrors
@@ -103,15 +103,25 @@ function createServer(port) {
   app.use(staticPath, express.static("./static"));
 
   devMiddleware.waitUntilValid(() => {
-    process.env.PORT = port;
-    const uri = "http://localhost:" + port;
-    // console.log("> Listening at " + uri + "\n");
-    // when env is testing, don't need open it
+    const url = "http://localhost:" + port + getPathName(config.dev.pathName);
+
     if (autoOpenBrowser && process.env.NODE_ENV !== "testing") {
-      opn(uri);
+      opn(url);
     }
     server = app.listen(port);
 
     _resolve();
   });
+}
+
+function getPathName(pathName = "") {
+  if (pathName.indexOf("/") === 0) {
+    return pathName;
+  }
+
+  if (pathName === "") {
+    return "";
+  }
+
+  return "/" + pathName;
 }
