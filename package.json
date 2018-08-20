@@ -1,7 +1,7 @@
 {
-  "name": "vue-ts-scaffold",
+  "name": "vue-spa-scaffold",
   "version": "1.0.1",
-  "description": "it is vue + typescript scaffold",
+  "description": "it is vue spa scaffold",
   "author": "xiaofan <718662552@qq.com>",
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
