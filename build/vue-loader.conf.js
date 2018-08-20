@@ -14,13 +14,7 @@ module.exports = {
         ? config.build.productionSourceMap
         : config.dev.cssSourceMap,
       extract: isProduction
-    }),
-    config.ts
-      ? {
-          ts: "ts-loader",
-          tsx: "babel-loader?cacheDirectory=true!ts-loader"
-        }
-      : {}
+    })
   ),
   cssSourceMap: sourceMapEnabled,
   // 在模版编译过程中，编译器可以将某些属性，如 src 路径，转换为 require 调用，以便目标资源可以由 webpack 处理

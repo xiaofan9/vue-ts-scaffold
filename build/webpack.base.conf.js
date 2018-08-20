@@ -28,36 +28,10 @@ const eslint = () => [
   }
 ];
 
-// typescript 解析规则
-const ts = () => [
-  {
-    test: /\.tsx?$/,
-    loader: "tslint-loader",
-    exclude: /node_modules/,
-    include: [resolve("src")],
-    enforce: "pre",
-    options: {
-      failOnHint: true
-    }
-  },
-  {
-    test: /\.tsx?$/,
-    exclude: /node_modules/,
-    include: [resolve("src")],
-    use: [
-      "babel-loader?cacheDirectory=true",
-      {
-        loader: "ts-loader",
-        options: { appendTsxSuffixTo: [/\.vue$/] }
-      }
-    ]
-  }
-];
-
 module.exports = {
   entry: {
     // 根据配置文件判断是否载入 ts
-    app: config.ts ? "./src/main.ts" : "./src/main.js"
+    app: "./src/main.js"
   },
   output: {
     path: config.build.assetsRoot,
@@ -81,7 +55,6 @@ module.exports = {
     rules: [
       // 根据 vue-cli 来，根据参数判断是否载入eslint配置
       ...(config.dev.useEslint ? eslint() : []),
-      ...(config.ts ? ts() : []),
       {
         test: /\.js$/,
         loader: "babel-loader?cacheDirectory=true",
