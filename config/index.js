@@ -50,7 +50,5 @@ module.exports = {
     cssSourceMap: true,
     // 外部依赖库配置  key 库名称 value window全局变量名称
     externals: {}
-  },
-  ts: false,
-  multipage: true
+  }
 };

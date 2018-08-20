@@ -111,27 +111,7 @@ const webpackConfig = merge(baseWebpackConfig, {
     // generate dist index.html with correct asset hash for caching.
     // you can customize output by editing /index.html
     // see https://github.com/ampedandwired/html-webpack-plugin
-    ...(config.multipage
-      ? multipage.html
-      : [
-          new HtmlWebpackPlugin({
-            filename:
-              process.env.NODE_ENV === "testing"
-                ? "index.html"
-                : config.build.index,
-            template: "index.html",
-            inject: true,
-            minify: {
-              removeComments: true,
-              collapseWhitespace: true,
-              removeAttributeQuotes: true
-              // more options:
-              // https://github.com/kangax/html-minifier#options-quick-reference
-            },
-            // necessary to consistently work with multiple chunks via CommonsChunkPlugin
-            chunksSortMode: "dependency"
-          })
-        ]),
+    ...multipage.html,
     // keep module.id stable when vender modules does not change
     new webpack.HashedModuleIdsPlugin(),
     // 作用域提升，自动开启，已废弃使用 optimization.concatenateModules 替代 webpack.optimize.ModuleConcatenationPlugin(),

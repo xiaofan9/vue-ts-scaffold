@@ -14,7 +14,10 @@ module.exports = function(config) {
     browsers: ["ChromeHeadless"],
     frameworks: ["mocha"],
     reporters: ["spec", "coverage"],
-    files: ["../../node_modules/babel-polyfill/dist/polyfill.js", "./index.js"],
+    files: [
+      "../../node_modules/babel-polyfill/dist/polyfill.min.js",
+      "./index.js"
+    ],
     preprocessors: { "./index.js": ["webpack", "sourcemap"] },
     webpack: webpackConfig,
     webpackMiddleware: { stats: "errors-only" },

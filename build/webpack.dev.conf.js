@@ -35,15 +35,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     // 已废弃，使用optimization.noEmitOnErrors 替代，生产环境默认开启，编译错误时，跳过输出阶段，好像由于webpack-dev-server禁止了输出，开不开没关系了。
     // new webpack.NoEmitOnErrorsPlugin(),
     // https://github.com/ampedandwired/html-webpack-plugin
-    ...(config.multipage
-      ? multipage.html
-      : [
-          new HtmlWebpackPlugin({
-            filename: "index.html",
-            template: "index.html",
-            inject: true
-          })
-        ]),
+    ...multipage.html,
     // 复制自定义静态文件夹
     new CopyWebpackPlugin([
       {
