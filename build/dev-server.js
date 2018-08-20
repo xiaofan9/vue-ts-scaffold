@@ -108,7 +108,7 @@ function createServer(port) {
     if (autoOpenBrowser && process.env.NODE_ENV !== "testing") {
       opn(url);
     }
-    server = app.listen(port);
+    server = app.listen(port, config.host);
 
     _resolve();
   });
