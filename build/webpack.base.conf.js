@@ -4,73 +4,84 @@ const utils = require("./utils");
 const config = require("../config");
 const vueLoaderConfig = require("./vue-loader.conf");
 const webpack = require("webpack");
-const isProduction = process.env.NODE_ENV === "production";
-const externals = isProduction ? config.build.externals : config.dev.externals;
-const { VueLoaderPlugin } = require("vue-loader");
+const isProd = process.env.NODE_ENV === "production";
+const isDev = process.env.NODE_ENV === "development";
+const FriendlyErrorsPlugin = require("friendly-errors-webpack-plugin");
+const {
+  VueLoaderPlugin
+} = require("vue-loader");
 
-function resolve(dir) {
-  return path.join(__dirname, "..", dir);
-}
-
-const provide = isProduction ? config.build.provide : config.dev.provide;
+const PORT = process.env.PORT && Number(process.env.PORT);
 
 // eslint 解析规则
-const eslint = () => [
-  {
-    test: /\.(js|vue)$/,
-    loader: "eslint-loader",
-    enforce: "pre",
-    include: [resolve("src"), resolve("test")],
-    options: {
-      formatter: require("eslint-friendly-formatter"),
-      emitWarning: !config.dev.showEslintErrorsInOverlay
-    }
+const eslint = () => [{
+  test: /\.(js|vue)$/,
+  loader: "eslint-loader",
+  enforce: "pre",
+  include: [utils.resolve("src"), utils.resolve("test")],
+  options: {
+    formatter: require("eslint-friendly-formatter"),
+    emitWarning: !config.dev.showEslintErrorsInOverlay
   }
-];
+}];
 
 module.exports = {
   entry: {
-    // 根据配置文件判断是否载入 ts
     app: "./src/main.js"
   },
   output: {
-    path: config.build.assetsRoot,
     filename: "[name].js",
-    publicPath: isProduction
-      ? config.build.assetsPublicPath
-      : config.dev.assetsPublicPath
+    publicPath: isProd ?
+      config.build.assetsPublicPath : config.dev.assetsPublicPath
   },
   resolve: {
     // 添加 ts，tsx 后缀
-    extensions: [".js", ".vue", ".json", ".ts", ".tsx"],
+    extensions: [
+      ".js",
+      ".vue",
+      ".json",
+      ".css",
+      ".png",
+      ".gif",
+      ".bmp",
+      ".wbp",
+      ".scss"
+    ],
     alias: {
-      "@": resolve("src"),
+      "@": utils.resolve("src"),
       vue$: "vue/dist/vue.esm"
     }
-  },
-  externals: {
-    ...externals
   },
   module: {
     rules: [
       // 根据 vue-cli 来，根据参数判断是否载入eslint配置
       ...(config.dev.useEslint ? eslint() : []),
       {
-        test: /\.js$/,
-        loader: "babel-loader?cacheDirectory=true",
-        include: [resolve("src"), resolve("test")]
+        test: /\.jsx?$/,
+        use: [cache("babel"), ...(isProd ? [{
+          loader: 'thread-loader'
+        }] : []), {
+          loader: "babel-loader"
+        }],
+        include: [utils.resolve("src"), utils.resolve("test")]
       },
       {
         test: /\.vue$/,
-        loader: "vue-loader",
-        options: vueLoaderConfig
+        use: [
+          cache("vue"),
+          {
+            loader: "vue-loader",
+            options: vueLoaderConfig
+          }
+        ],
+        exclude: file => /node_modules/.test(file) && !/\.vue\.js/.test(file)
       },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
         loader: "url-loader",
         options: {
           limit: 10000,
-          name: utils.assetsPath("img/[name].[hash:7].[ext]")
+          name: utils.assetsPath("images/[name].[hash:7].[ext]")
         }
       },
       {
@@ -113,9 +124,16 @@ module.exports = {
   plugins: [
     // webpack自动引入包，并注入到全局，省略 import xxx from "xxx" 写法
     new webpack.ProvidePlugin({
-      ...provide
+      ...(config.provide || {})
     }),
     // vue-loader 15.x 必须要引入的一个东东
     new VueLoaderPlugin()
   ]
 };
+
+function cache(name) {
+  return {
+    loader: "cache-loader",
+    options: utils.cacheConfig(name)
+  }
+}
