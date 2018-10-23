@@ -10,9 +10,10 @@ const webpack = require("webpack");
 const proxyMiddleware = require("http-proxy-middleware");
 const FriendlyErrorsPlugin = require("friendly-errors-webpack-plugin");
 const portfinder = require("portfinder");
-
+const http = require("http");
 const webpackConfig = require("./webpack.dev.conf");
 const utils = require("./utils");
+const chalk = require("chalk");
 
 if (!process.env.NODE_ENV) {
   process.env.NODE_ENV = JSON.parse(config.dev.env.NODE_ENV);
@@ -26,6 +27,11 @@ const readyPromise = new Promise((resolve, reject) => {
   _reject = reject;
 });
 
+let host;
+if (config.dev.host === "0.0.0.0") {
+  host = require("./ip").ip().address;
+}
+
 portfinder.basePort = process.env.PORT || config.dev.port;
 portfinder.getPort((err, port) => {
   if (err) {
@@ -33,18 +39,15 @@ portfinder.getPort((err, port) => {
   } else {
     process.env.PORT = port;
 
+    let local = host ? `\r\n\r\n    - Local:   ${chalk.cyan(`http://localhost:${port}${getPathName(config.dev.pathName)}`)}\r\n    - Network: ` : ": ";
+
     webpackConfig.plugins.push(
       new FriendlyErrorsPlugin({
         compilationSuccessInfo: {
-          messages: [
-            `Your application is running here: http://${
-              config.dev.host
-            }:${port}${getPathName(config.dev.pathName)}`
-          ]
+          messages: [`Your application is running here${local}${chalk.cyan(`http://${ host || config.dev.host }:${port}${getPathName(config.dev.pathName)}`)}\r\n`]
         },
-        onErrors: config.dev.notifyOnErrors
-          ? utils.createNotifierCallback()
-          : undefined
+        onErrors: config.dev.notifyOnErrors ?
+          utils.createNotifierCallback() : undefined
       })
     );
 
@@ -56,7 +59,8 @@ module.exports = {
   ready: readyPromise,
   close: () => {
     server.close();
-  }
+  },
+  createServer
 };
 
 function createServer(port) {
@@ -84,10 +88,12 @@ function createServer(port) {
   app.use(hotMiddleware);
 
   // proxy api requests
-  Object.keys(proxyTable).forEach(function(context) {
+  Object.keys(proxyTable).forEach(function (context) {
     let options = proxyTable[context];
     if (typeof options === "string") {
-      options = { target: options };
+      options = {
+        target: options
+      };
     }
     app.use(proxyMiddleware(options.filter || context, options));
   });
@@ -103,12 +109,20 @@ function createServer(port) {
   app.use(staticPath, express.static("./static"));
 
   devMiddleware.waitUntilValid(() => {
-    const url = "http://localhost:" + port + getPathName(config.dev.pathName);
+    const url =
+      "http://" +
+      (host ? "localhost" : config.dev.host) +
+      ":" +
+      port +
+      getPathName(config.dev.pathName);
 
     if (autoOpenBrowser && process.env.NODE_ENV !== "testing") {
       opn(url);
     }
-    server = app.listen(port, config.host);
+
+    server = http.createServer(app);
+
+    server.listen(port, config.dev.host);
 
     _resolve();
   });

@@ -12,5 +12,6 @@ import word from "./components/HelloWorld";
 @Component({
   components: { word }
 })
-export default class App extends Vue {}
+class App extends Vue {}
+export default App;
 </script>

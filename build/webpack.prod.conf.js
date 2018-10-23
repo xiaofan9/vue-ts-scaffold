@@ -1,5 +1,4 @@
 "use strict";
-const path = require("path");
 const utils = require("./utils");
 const webpack = require("webpack");
 const config = require("../config");
@@ -10,12 +9,41 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const OptimizeCSSPlugin = require("optimize-css-assets-webpack-plugin");
 const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const safeParser = require("postcss-safe-parser");
 const multipage = require("./multipage");
+const path = require("path");
+const CDNPlugin = require("./cdn-plugin");
+// const {
+//   GenerateSW
+// } = require("workbox-webpack-plugin");
 
-const env =
-  process.env.NODE_ENV === "testing"
-    ? require("../config/test.env")
-    : config.build.env;
+let cdn = config.build.cdn || [];
+const externals = handlerExternals(config.build.externals);
+
+function handlerExternals(externals) {
+  if (!externals || !(utils.isObject(externals) && Object.keys(externals).length)) {
+    return {}
+  }
+
+  let obj = {};
+
+  Object.keys(externals).forEach(k => {
+    let tmp = externals[k];
+    if (utils.isObject(tmp)) {
+      if (tmp["window"]) {
+        obj[k] = tmp["window"];
+      }
+
+      if (tmp["cdn"] && typeof tmp["cdn"] === "string") {
+        cdn.push(tmp["cdn"]);
+      }
+    } else {
+      obj[k] = tmp;
+    }
+  })
+
+  return obj;
+}
 
 const webpackConfig = merge(baseWebpackConfig, {
   module: {
@@ -28,8 +56,11 @@ const webpackConfig = merge(baseWebpackConfig, {
   devtool: config.build.productionSourceMap ? "#source-map" : false,
   output: {
     path: config.build.assetsRoot,
-    filename: utils.assetsPath("js/[name].[chunkhash].js"),
-    chunkFilename: utils.assetsPath("js/[id].[chunkhash].js")
+    filename: utils.assetsPath("js/[name].[chunkhash:8].js"),
+    chunkFilename: utils.assetsPath("js/[name].[chunkhash:8].js")
+  },
+  externals: {
+    ...externals
   },
   optimization: {
     // 压缩配置
@@ -38,121 +69,117 @@ const webpackConfig = merge(baseWebpackConfig, {
         uglifyOptions: {
           compress: {
             warnings: false,
-            pure_funcs: ["console.log"]
+            ...(config.build.showLog ? {} : {
+              drop_debugger: true,
+              // drop_console: true,
+              pure_funcs: ["console.log"]
+            })
           }
         },
         sourceMap: config.build.productionSourceMap,
-        parallel: true
+        parallel: true,
+        cache: true
       })
     ],
     // 采用splitChunks提取出entry chunk的chunk Group
     splitChunks: {
       cacheGroups: {
         // 处理入口chunk
-        vendors: {
+        vendor: {
           test: /[\\/]node_modules[\\/]/,
-          chunks: "initial", // 只对入口文件处理
-          name: "vendor"
+          chunks: "all", // "initial","async","all".配置之后只会选择对应于初始化代码块（只对入口文件处理）,按需加载代码块,或者是所有代码块
+          name: "chunk-vendor"
         },
-        // 处理异步chunk
-        "vendor-async": {
-          test: /[\\/]node_modules[\\/]/,
-          minChunks: 2,
+        // 处理异步引入的chunk
+        async: {
           chunks: "async",
-          name: "vendor-async"
+          minChunks: 2,
+          name: "chunk-async"
         },
         common: {
-          test(chunks) {
-            return path
-              .resolve(chunks.context)
-              .includes(path.resolve(__dirname, "../src/common"));
-          },
+          test: chunk => path
+            .resolve(chunk.context)
+            .includes(path.resolve(__dirname, "..", "src")),
+          name: "chunk-common",
           chunks: "all",
-          name: "common",
-          minChunks: multipage.len
+          minChunks: 2
         }
       }
     },
     // 为每个入口提取出webpack runtime模块
-    runtimeChunk: { name: "manifest" },
+    runtimeChunk: {
+      name: "manifest"
+    },
     nodeEnv: "production"
   },
   plugins: [
-    // 设置运行环境，默认设置为生产环境
-    // new webpack.DefinePlugin({
-    //   "process.env": env
-    // }),
-    // extract css into its own file
+    // 提取css
     new MiniCssExtractPlugin({
-      filename: utils.assetsPath("css/[name].[chunkhash].css"),
-      chunkFilename: utils.assetsPath("css/[name].[chunkhash].css")
-      // allChunks: true
+      filename: utils.assetsPath("css/[name].[chunkhash:8].css"),
+      chunkFilename: utils.assetsPath("css/[name].[chunkhash:8].css")
     }),
-    // 默认开启，内置optimization.minimize来压缩代码
-    // new UglifyJsPlugin({
-    //   uglifyOptions: {
-    //     compress: {
-    //       warnings: false,
-    //       drop_console: true,
-    //       pure_funcs: ["console.log"]
-    //     }
-    //   },
-    //   sourceMap: config.build.productionSourceMap,
-    //   parallel: true
-    // }),
-    // Compress extracted CSS. We are using this plugin so that possible
-    // duplicated CSS from different components can be deduped.
+    // css 代码压缩
     new OptimizeCSSPlugin({
-      cssProcessorOptions: config.build.productionSourceMap
-        ? { safe: true, map: { inline: false } }
-        : { safe: true }
+      cssProcessorOptions: config.build.productionSourceMap ? {
+        parser: safeParser,
+        map: {
+          inline: false
+        }
+      } : {
+        parser: safeParser
+      }
     }),
-    // generate dist index.html with correct asset hash for caching.
-    // you can customize output by editing /index.html
-    // see https://github.com/ampedandwired/html-webpack-plugin
+    // 载入多页面html
     ...multipage.html,
-    // keep module.id stable when vender modules does not change
+    // 模块不变，hash id 保持不变
     new webpack.HashedModuleIdsPlugin(),
-    // 作用域提升，自动开启，已废弃使用 optimization.concatenateModules 替代 webpack.optimize.ModuleConcatenationPlugin(),
-    /*
-    已废弃使用，使用optimization.splitChunks和optimization.runtimeChunk来代替；
-    // split vendor js into its own file
-    new webpack.optimize.CommonsChunkPlugin({
-      name: "vendor",
-      minChunks: function(module) {
-        // any required modules inside node_modules are extracted to vendor
-        return (
-          module.resource &&
-          /\.js$/.test(module.resource) &&
-          module.resource.indexOf(path.join(__dirname, "../node_modules")) === 0
-        );
-      }
+    // 复制静态文件夹
+    new CopyWebpackPlugin([{
+      from: utils.resolve("static"),
+      to: config.build.assetsSubDirectory,
+      ignore: [".*"]
+    }]),
+    new CDNPlugin({
+      cdn: config.build.cdn,
+      chunk: true
     }),
-    // extract webpack runtime and module manifest to its own file in order to
-    // prevent vendor hash from being updated whenever app bundle is updated
-    new webpack.optimize.CommonsChunkPlugin({
-      name: "manifest",
-      chunks: ["vendor"]
-    }),
-    // This instance extracts shared chunks from code splitted chunks and bundles them
-    // in a separate chunk, similar to the vendor chunk
-    // see: https://webpack.js.org/plugins/commons-chunk-plugin/#extra-async-commons-chunk
-    new webpack.optimize.CommonsChunkPlugin({
-      name: 'app',
-      async: 'vendor-async',
-      children: true,
-      minChunks: 3
-    }),
-    */
-
-    // copy custom static assets
-    new CopyWebpackPlugin([
-      {
-        from: path.resolve(__dirname, "../static"),
-        to: config.build.assetsSubDirectory,
-        ignore: [".*"]
-      }
-    ])
+    // new GenerateSW({
+    //   cacheId: require("../package.json").name,
+    //   clientsClaim: true, // Service Worker 被激活后使其立即获得页面控制权
+    //   skipWaiting: true, // 强制等待中的 Service Worker 被激活
+    //   runtimeCaching: [
+    //     // 配置路由请求缓存 对应 workbox.routing.registerRoute
+    //     {
+    //       urlPattern: /.*\.js/, // 匹配文件
+    //       handler: 'networkFirst' // 网络优先
+    //     },
+    //     {
+    //       urlPattern: /.*\.css/,
+    //       handler: 'staleWhileRevalidate', // 缓存优先同时后台更新
+    //       options: {
+    //         // 这里可以设置 cacheName 和添加插件
+    //         cacheableResponse: {
+    //           statuses: [0, 200]
+    //         }
+    //       }
+    //     },
+    //     {
+    //       urlPattern: /.*\.(?:png|jpg|jpeg|svg|gif)/,
+    //       handler: 'cacheFirst', // 缓存优先
+    //       options: {
+    //         cacheName: require("../package.json").name + "--img-cache",
+    //         expiration: {
+    //           maxEntries: 50,
+    //           maxAgeSeconds: 60
+    //         }
+    //       }
+    //     },
+    //     {
+    //       urlPattern: /.*\.html/,
+    //       handler: 'networkFirst'
+    //     }
+    //   ]
+    // })
   ]
 });
 
@@ -161,21 +188,13 @@ if (config.build.productionGzip) {
 
   webpackConfig.plugins.push(
     new CompressionWebpackPlugin({
-      asset: "[path].gz[query]",
-      algorithm: "gzip",
       test: new RegExp(
         "\\.(" + config.build.productionGzipExtensions.join("|") + ")$"
       ),
       threshold: 10240,
-      minRatio: 0.8
+      cache: true
     })
   );
-}
-
-if (config.build.bundleAnalyzerReport) {
-  const BundleAnalyzerPlugin = require("webpack-bundle-analyzer")
-    .BundleAnalyzerPlugin;
-  webpackConfig.plugins.push(new BundleAnalyzerPlugin());
 }
 
 module.exports = webpackConfig;
