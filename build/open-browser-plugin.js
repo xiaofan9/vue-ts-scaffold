@@ -17,7 +17,9 @@ class OpenBrowser {
           this.port +
           getPathName(this.pathName);
 
-        opn(url).catch(err => console.error(err));
+        opn(url).then(() => {
+          this.open = false;
+        }).catch(err => console.error(err));
       }
     });
   }
