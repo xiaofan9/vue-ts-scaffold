@@ -2,9 +2,11 @@
 import { Vue, Component } from "vue-property-decorator";
 
 @Component
-export default class FilterItem extends Vue {
+class FilterItem extends Vue {
   render(h, context) {
     return <div>这条是jsx111</div>;
   }
 }
+
+export default FilterItem;
 </script>

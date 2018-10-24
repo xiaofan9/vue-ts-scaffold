@@ -3,36 +3,37 @@ const path = require("path");
 const config = require("../config");
 const packageConfig = require("../package.json");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const hash = require("hash-sum");
 
-exports.assetsPath = function(_path) {
+exports.assetsPath = function (_path) {
   const assetsSubDirectory =
-    process.env.NODE_ENV === "production"
-      ? config.build.assetsSubDirectory
-      : config.dev.assetsSubDirectory;
+    process.env.NODE_ENV === "production" ?
+    config.build.assetsSubDirectory :
+    config.dev.assetsSubDirectory;
   return path.posix.join(assetsSubDirectory, _path);
 };
 
-exports.cssLoaders = function(options) {
+exports.cssLoaders = function (options) {
   options = options || {};
 
   const cssLoader = {
     loader: "css-loader",
     options: {
-      minimize: process.env.NODE_ENV === "production",
+      importLoaders: 2,
       sourceMap: options.sourceMap
     }
   };
 
   const postcssLoader = {
     loader: "postcss-loader",
-    options: { sourceMap: options.sourceMap }
+    options: {
+      sourceMap: options.sourceMap
+    }
   };
 
   // generate loader string to be used with extract text plugin
   function generateLoaders(loader, loaderOptions) {
-    const loaders = options.usePostCSS
-      ? [cssLoader, postcssLoader]
-      : [cssLoader];
+    const loaders = options.usePostCSS ? [cssLoader, postcssLoader] : [cssLoader];
 
     if (loader) {
       loaders.push({
@@ -48,13 +49,11 @@ exports.cssLoaders = function(options) {
     if (options.extract) {
       // return ExtractTextPlugin.extract({
       //   use: loaders,
-      //   fallback: "vue-style-loader",
-      //   publicPath: "../";
+      //   fallback: "vue-style-loader"
       // });
 
       // vue-style-loader 无法与 MiniCssExtractPlugin.loader 共用，会报错
-      return [
-        {
+      return [{
           loader: MiniCssExtractPlugin.loader,
           options: {
             publicPath: "../"
@@ -67,12 +66,13 @@ exports.cssLoaders = function(options) {
     }
   }
 
-  // https://vue-loader.vuejs.org/en/configurations/extract-css.html
   return {
     css: generateLoaders(),
     postcss: generateLoaders(),
     less: generateLoaders("less"),
-    sass: generateLoaders("sass", { indentedSyntax: true }),
+    sass: generateLoaders("sass", {
+      indentedSyntax: true
+    }),
     scss: generateLoaders("sass"),
     stylus: generateLoaders("stylus"),
     styl: generateLoaders("stylus")
@@ -80,7 +80,7 @@ exports.cssLoaders = function(options) {
 };
 
 // Generate loaders for standalone style files (outside of .vue)
-exports.styleLoaders = function(options) {
+exports.styleLoaders = function (options) {
   const output = [];
   const loaders = exports.cssLoaders(options);
 
@@ -108,7 +108,29 @@ exports.createNotifierCallback = () => {
       title: packageConfig.name,
       message: severity + ": " + error.name,
       subtitle: filename || "",
-      icon: path.join(__dirname, "logo.png")
+      icon: exports.resolve("logo.png")
     });
   };
 };
+
+exports.cacheConfig = (name, variables) => {
+  if (!variables) {
+    variables = {
+      "cache-loader": require('cache-loader/package.json').version,
+      "env": process.env.NODE_ENV,
+      "modern": !!process.env.MODERN_BUILD
+    }
+  }
+  return {
+    cacheDirectory: exports.resolve("node_modules\\.cache\\" + name + "-loader"),
+    cacheIdentifier: hash(variables)
+  };
+}
+
+exports.resolve = function (dir) {
+  return path.join(__dirname, "..", dir);
+}
+
+exports.isObject = function (arg) {
+  return Object.prototype.toString.call(arg) === "[object Object]"
+}
