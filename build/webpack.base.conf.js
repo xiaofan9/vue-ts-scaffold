@@ -7,23 +7,24 @@ const webpack = require("webpack");
 const isProd = process.env.NODE_ENV === "production";
 const isDev = process.env.NODE_ENV === "development";
 const FriendlyErrorsPlugin = require("friendly-errors-webpack-plugin");
-const {
-  VueLoaderPlugin
-} = require("vue-loader");
+const { VueLoaderPlugin } = require("vue-loader");
+const { externals } = require("./add--cdn-externals");
 
 const PORT = process.env.PORT && Number(process.env.PORT);
 
 // eslint 解析规则
-const eslint = () => [{
-  test: /\.(js|vue)$/,
-  loader: "eslint-loader",
-  enforce: "pre",
-  include: [utils.resolve("src"), utils.resolve("test")],
-  options: {
-    formatter: require("eslint-friendly-formatter"),
-    emitWarning: !config.dev.showEslintErrorsInOverlay
+const eslint = () => [
+  {
+    test: /\.(js|vue)$/,
+    loader: "eslint-loader",
+    enforce: "pre",
+    include: [utils.resolve("src"), utils.resolve("test")],
+    options: {
+      formatter: require("eslint-friendly-formatter"),
+      emitWarning: !config.dev.showEslintErrorsInOverlay
+    }
   }
-}];
+];
 
 module.exports = {
   entry: {
@@ -31,8 +32,9 @@ module.exports = {
   },
   output: {
     filename: "[name].js",
-    publicPath: isProd ?
-      config.build.assetsPublicPath : config.dev.assetsPublicPath
+    publicPath: isProd
+      ? config.build.assetsPublicPath
+      : config.dev.assetsPublicPath
   },
   resolve: {
     // 添加 ts，tsx 后缀
@@ -58,11 +60,19 @@ module.exports = {
       ...(config.dev.useEslint ? eslint() : []),
       {
         test: /\.jsx?$/,
-        use: [cache("babel"), ...(isProd ? [{
-          loader: 'thread-loader'
-        }] : []), {
-          loader: "babel-loader"
-        }],
+        use: [
+          cache("babel"),
+          ...(isProd
+            ? [
+                {
+                  loader: "thread-loader"
+                }
+              ]
+            : []),
+          {
+            loader: "babel-loader"
+          }
+        ],
         include: [utils.resolve("src"), utils.resolve("test")]
       },
       {
@@ -119,6 +129,9 @@ module.exports = {
     tls: "empty",
     child_process: "empty"
   },
+  externals: {
+    ...externals
+  },
   // webpack 4 提供的mode 模式 production/development，有默认配置，具体参考官方文档。
   mode: process.env.NODE_ENV === "production" ? "production" : "development",
   plugins: [
@@ -135,5 +148,5 @@ function cache(name) {
   return {
     loader: "cache-loader",
     options: utils.cacheConfig(name)
-  }
+  };
 }

@@ -10,39 +10,13 @@ const OptimizeCSSPlugin = require("optimize-css-assets-webpack-plugin");
 const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const safeParser = require("postcss-safe-parser");
-const path = require("path");
 const CDNPlugin = require("./cdn-plugin");
+const path = require("path");
 // const {
 //   GenerateSW
 // } = require("workbox-webpack-plugin");
 
-let cdn = config.build.cdn || [];
-const externals = handlerExternals(config.build.externals);
-
-function handlerExternals(externals) {
-  if (!externals || !(utils.isObject(externals) && Object.keys(externals).length)) {
-    return {}
-  }
-
-  let obj = {};
-
-  Object.keys(externals).forEach(k => {
-    let tmp = externals[k];
-    if (utils.isObject(tmp)) {
-      if (tmp["window"]) {
-        obj[k] = tmp["window"];
-      }
-
-      if (tmp["cdn"] && typeof tmp["cdn"] === "string") {
-        cdn.push(tmp["cdn"]);
-      }
-    } else {
-      obj[k] = tmp;
-    }
-  })
-
-  return obj;
-}
+const { cdn } = require("./add--cdn-externals");
 
 const webpackConfig = merge(baseWebpackConfig, {
   module: {
@@ -58,9 +32,6 @@ const webpackConfig = merge(baseWebpackConfig, {
     filename: utils.assetsPath("js/[name].[chunkhash:8].js"),
     chunkFilename: utils.assetsPath("js/[name].[chunkhash:8].js")
   },
-  externals: {
-    ...externals
-  },
   optimization: {
     // 压缩配置
     minimizer: [
@@ -68,11 +39,13 @@ const webpackConfig = merge(baseWebpackConfig, {
         uglifyOptions: {
           compress: {
             warnings: false,
-            ...(config.build.showLog ? {} : {
-              drop_debugger: true,
-              // drop_console: true,
-              pure_funcs: ["console.log"]
-            })
+            ...(config.build.showLog
+              ? {}
+              : {
+                  drop_debugger: true,
+                  // drop_console: true,
+                  pure_funcs: ["console.log"]
+                })
           }
         },
         sourceMap: config.build.productionSourceMap,
@@ -82,15 +55,17 @@ const webpackConfig = merge(baseWebpackConfig, {
       // css 代码压缩
       new OptimizeCSSPlugin({
         // https://github.com/postcss/postcss/blob/master/README-cn.md#%E9%85%8D%E7%BD%AE%E9%80%89%E9%A1%B9
-        cssProcessorOptions: config.build.productionSourceMap ? {
-          parser: safeParser,
-          map: {
-            inline: false
-          }
-        } : {
-          parser: safeParser
-        }
-      }),
+        cssProcessorOptions: config.build.productionSourceMap
+          ? {
+              parser: safeParser,
+              map: {
+                inline: false
+              }
+            }
+          : {
+              parser: safeParser
+            }
+      })
     ],
     // 采用splitChunks提取出entry chunk的chunk Group
     splitChunks: {
@@ -108,9 +83,8 @@ const webpackConfig = merge(baseWebpackConfig, {
           name: "chunk-async"
         },
         common: {
-          test: chunk => path
-            .resolve(chunk.context)
-            .includes(utils.resolve("src")),
+          test: chunk =>
+            path.resolve(chunk.context).includes(utils.resolve("src")),
           name: "chunk-common",
           chunks: "all",
           minChunks: 2
@@ -131,7 +105,8 @@ const webpackConfig = merge(baseWebpackConfig, {
     }),
     // 载入多页面html
     new HtmlWebpackPlugin({
-      filename: process.env.NODE_ENV === "testing" ? "index.html" : config.build.index,
+      filename:
+        process.env.NODE_ENV === "testing" ? "index.html" : config.build.index,
       template: "index.html",
       inject: true,
       minify: {
@@ -147,16 +122,18 @@ const webpackConfig = merge(baseWebpackConfig, {
     // 模块不变，hash id 保持不变
     new webpack.HashedModuleIdsPlugin(),
     // 复制静态文件夹
-    new CopyWebpackPlugin([{
-      from: utils.resolve("static"),
-      to: config.build.assetsSubDirectory,
-      ignore: [".*"]
-    }]),
+    new CopyWebpackPlugin([
+      {
+        from: utils.resolve("static"),
+        to: config.build.assetsSubDirectory,
+        ignore: [".*"]
+      }
+    ]),
     // cdn 插件
     new CDNPlugin({
-      cdn: config.build.cdn,
+      cdn,
       chunk: true
-    }),
+    })
     // new GenerateSW({
     //   cacheId: require("../package.json").name,
     //   clientsClaim: true, // Service Worker 被激活后使其立即获得页面控制权
