@@ -68,12 +68,13 @@ module.exports = {
     //   cdn: "https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.min.js",
     //   window: "Vue"
     // }
+  }
 };
 
 function hasMultipleCores() {
   try {
-    return require('os').cpus().length > 1
+    return require("os").cpus().length > 1;
   } catch (e) {
-    return false
+    return false;
   }
 }

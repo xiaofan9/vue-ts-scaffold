@@ -1,9 +1,8 @@
 /* eslint-disable no-console */
 
 import { register } from "register-service-worker";
-import config from "../config";
 
-if (process.env.NODE_ENV === "production" && config.build.serviceWork) {
+if (process.env.NODE_ENV === "production") {
   register("./service-worker.js", {
     ready() {
       console.log(
