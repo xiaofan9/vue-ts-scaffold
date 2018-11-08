@@ -1,11 +1,12 @@
 .DS_Store/
 node_modules/
 dist/
-test/
 tmp/
 .idea/
 .vscode/
 .svn/
+
+test/unit/coverage/
 
 # Editor directories and files
 selenium-debug.log

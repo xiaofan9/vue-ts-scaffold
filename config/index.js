@@ -24,8 +24,8 @@ module.exports = {
     bundleAnalyzerReport: false,
     // css 源码映射
     productionSourceMap: true,
-    serviceWork: true,
     parallel: hasMultipleCores(),
+    serviceWork: true,
     showLog: false // true：显示日志，false：不显示日志
   },
   dev: {

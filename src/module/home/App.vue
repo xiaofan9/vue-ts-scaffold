@@ -6,12 +6,15 @@
 </template>
 
 <script>
-import { Vue, Component } from "vue-property-decorator";
+import { Vue, Component, Prop } from "vue-property-decorator";
 import word from "./components/HelloWorld";
 
 @Component({
   components: { word }
 })
-class App extends Vue {}
+class App extends Vue {
+  @Prop()
+  A;
+}
 export default App;
 </script>

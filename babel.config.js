@@ -10,26 +10,40 @@ const presets = [
     {
       modules: isTesting ? "commonjs" : false,
       useBuiltIns: isProd || isModernBuild ? "usage" : false,
-      ...(isDev ? {
-        targets: {
-          browsers: ["Chrome >= 50"]
-        }
-      }
-        : isModernBuild ? {
+      ...(isDev
+        ? {
           targets: {
-            esmodules: true
+            browsers: ["Chrome >= 50"]
           }
-        } : {})
+        }
+        : isModernBuild
+          ? {
+            targets: {
+              esmodules: true
+            }
+          }
+          : {})
     }
   ]
 ];
 
 const plugins = [
   "babel-plugin-transform-vue-jsx",
-  ["@babel/plugin-proposal-decorators", {
-    legacy: true
-  }],
-  ...(isProd || isModernBuild ? ["lodash"] : ["@babel/plugin-transform-runtime"])
+  [
+    "@babel/plugin-proposal-decorators",
+    {
+      legacy: true
+    }
+  ],
+  [
+    "@babel/plugin-proposal-class-properties",
+    {
+      loose: true
+    }
+  ],
+  ...(isProd || isModernBuild
+    ? ["lodash"]
+    : ["@babel/plugin-transform-runtime"])
 ];
 
 module.exports = {
