@@ -5,14 +5,12 @@ const path = require("path");
 const config = require("../config");
 const merge = require("webpack-merge");
 const baseWebpackConfig = require("./webpack.base.conf");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const FriendlyErrorsPlugin = require("friendly-errors-webpack-plugin");
 const portfinder = require("portfinder");
 const OpenBrowserPlugin = require("./open-browser-plugin");
 const CDNPlugin = require("./cdn-plugin");
 const chalk = require("chalk");
-const { cdn } = require("./add--cdn-externals");
 
 const devWebpackConfig = merge(baseWebpackConfig, {
   module: {
@@ -53,16 +51,6 @@ const devWebpackConfig = merge(baseWebpackConfig, {
   plugins: [
     // 热加载插件，vue好像必要要开启
     new webpack.HotModuleReplacementPlugin(),
-    new HtmlWebpackPlugin({
-      filename: "index.html",
-      template: "index.html",
-      inject: true
-    }),
-    // cdn 插件，依赖于HtmlWebpackPlugin插件
-    new CDNPlugin({
-      cdn: cdn,
-      chunk: true
-    }),
     // 复制自定义静态文件夹
     new CopyWebpackPlugin([
       {

@@ -5,15 +5,11 @@ const config = require("../config");
 const merge = require("webpack-merge");
 const baseWebpackConfig = require("./webpack.base.conf");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
 const OptimizeCSSPlugin = require("optimize-css-assets-webpack-plugin");
 const UglifyJsPlugin = require("uglifyjs-webpack-plugin");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const safeParser = require("postcss-safe-parser");
-const CDNPlugin = require("./cdn-plugin");
 const path = require("path");
-
-const { cdn } = require("./add--cdn-externals");
 
 const webpackConfig = merge(baseWebpackConfig, {
   module: {
@@ -100,22 +96,6 @@ const webpackConfig = merge(baseWebpackConfig, {
       filename: utils.assetsPath("css/[name].[chunkhash:8].css"),
       chunkFilename: utils.assetsPath("css/[name].[chunkhash:8].css")
     }),
-    // 生成html页面
-    new HtmlWebpackPlugin({
-      filename:
-        process.env.NODE_ENV === "testing" ? "index.html" : config.build.index,
-      template: "index.html",
-      inject: true,
-      minify: {
-        removeComments: true,
-        collapseWhitespace: true,
-        removeAttributeQuotes: true
-        // more options:
-        // https://github.com/kangax/html-minifier#options-quick-reference
-      },
-      // necessary to consistently work with multiple chunks via CommonsChunkPlugin
-      chunksSortMode: "dependency"
-    }),
     // 模块不变，hash id 保持不变
     new webpack.HashedModuleIdsPlugin(),
     // 复制静态文件夹
@@ -125,12 +105,7 @@ const webpackConfig = merge(baseWebpackConfig, {
         to: config.build.assetsSubDirectory,
         ignore: [".*"]
       }
-    ]),
-    // cdn 插件
-    new CDNPlugin({
-      cdn,
-      chunk: true
-    })
+    ])
   ]
 });
 
