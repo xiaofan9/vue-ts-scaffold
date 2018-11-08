@@ -4,29 +4,30 @@ const utils = require("./utils");
 const config = require("../config");
 const vueLoaderConfig = require("./vue-loader.conf");
 const webpack = require("webpack");
-const isProd = process.env.NODE_ENV === "production";
-const isDev = process.env.NODE_ENV === "development";
-const FriendlyErrorsPlugin = require("friendly-errors-webpack-plugin");
-const {
-  VueLoaderPlugin
-} = require("vue-loader");
 const ForkTsCheckerWebpackPlugin = require("fork-ts-checker-webpack-plugin");
+const { VueLoaderPlugin } = require("vue-loader");
+const { externals, cdn } = require("./add--cdn-externals");
+const CDNPlugin = require("./cdn-plugin");
+const html = require("./html");
 
+const isProd = process.env.NODE_ENV === "production";
+const isTest = process.env.NODE_ENV === "testing";
 const PORT = process.env.PORT && Number(process.env.PORT);
+const useThreads = isProd && config.build.parallel;
 
 // eslint 解析规则
-const eslint = () => [{
-  test: /\.(js|vue)$/,
-  loader: "eslint-loader",
-  enforce: "pre",
-  include: [utils.resolve("src"), utils.resolve("test")],
-  options: {
-    formatter: require("eslint-friendly-formatter"),
-    emitWarning: !config.dev.showEslintErrorsInOverlay
+const eslint = () => [
+  {
+    test: /\.(js|vue)$/,
+    loader: "eslint-loader",
+    enforce: "pre",
+    include: [utils.resolve("src"), utils.resolve("test")],
+    options: {
+      formatter: require("eslint-friendly-formatter"),
+      emitWarning: !config.dev.showEslintErrorsInOverlay
+    }
   }
-}];
-
-const useThreads = isProd && config.parallel;
+];
 
 module.exports = {
   entry: {
@@ -34,8 +35,9 @@ module.exports = {
   },
   output: {
     filename: "[name].js",
-    publicPath: isProd ?
-      config.build.assetsPublicPath : config.dev.assetsPublicPath
+    publicPath: isProd
+      ? config.build.assetsPublicPath
+      : config.dev.assetsPublicPath
   },
   resolve: {
     // 添加 ts，tsx 后缀
@@ -74,12 +76,16 @@ module.exports = {
         test: /\.tsx?$/,
         use: [
           cache("ts"),
-          ...(useThreads ? [{
-            loader: 'thread-loader'
-          }] : []),
+          ...(useThreads
+            ? [
+                {
+                  loader: "thread-loader"
+                }
+              ]
+            : []),
           "babel-loader",
           {
-            loader: 'ts-loader',
+            loader: "ts-loader",
             options: {
               transpileOnly: true,
               happyPackMode: useThreads,
@@ -90,11 +96,19 @@ module.exports = {
       },
       {
         test: /\.jsx?$/,
-        use: [cache("babel"), ...(useThreads ? [{
-          loader: 'thread-loader'
-        }] : []), {
-          loader: "babel-loader"
-        }],
+        use: [
+          cache("babel"),
+          ...(useThreads
+            ? [
+                {
+                  loader: "thread-loader"
+                }
+              ]
+            : []),
+          {
+            loader: "babel-loader"
+          }
+        ],
         include: [utils.resolve("src"), utils.resolve("test")]
       },
       {
@@ -131,10 +145,6 @@ module.exports = {
           limit: 10000,
           name: utils.assetsPath("fonts/[name].[hash:7].[ext]")
         }
-      },
-      {
-        test: /\.html$/,
-        loader: "ejs-loader"
       }
     ]
   },
@@ -151,6 +161,9 @@ module.exports = {
     tls: "empty",
     child_process: "empty"
   },
+  externals: {
+    ...externals
+  },
   // webpack 4 提供的mode 模式 production/development，有默认配置，具体参考官方文档。
   mode: process.env.NODE_ENV === "production" ? "production" : "development",
   plugins: [
@@ -163,10 +176,22 @@ module.exports = {
     new ForkTsCheckerWebpackPlugin({
       vue: true,
       tslint: config.tslint && utils.resolve("tslint.json"),
-      formatter: 'codeframe',
+      formatter: "codeframe",
       // https://github.com/TypeStrong/ts-loader#happypackmode-boolean-defaultfalse
-      checkSyntacticErrors: useThreads
-    })
+      checkSyntacticErrors: useThreads,
+      silent: false,
+      logger: { error: console.error, warn: () => {}, info: () => {} }
+    }),
+    ...(!isTest
+      ? [
+          html,
+          // cdn 插件
+          new CDNPlugin({
+            cdn,
+            chunk: true
+          })
+        ]
+      : [])
   ]
 };
 
@@ -174,5 +199,5 @@ function cache(name) {
   return {
     loader: "cache-loader",
     options: utils.cacheConfig(name)
-  }
+  };
 }

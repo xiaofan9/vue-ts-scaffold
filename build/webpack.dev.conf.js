@@ -5,7 +5,6 @@ const path = require("path");
 const config = require("../config");
 const merge = require("webpack-merge");
 const baseWebpackConfig = require("./webpack.base.conf");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const FriendlyErrorsPlugin = require("friendly-errors-webpack-plugin");
 const portfinder = require("portfinder");
@@ -33,10 +32,12 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     host: process.env.HOST || config.dev.host,
     port: (process.env.PORT && Number(process.env.PORT)) || config.dev.port,
     // open: config.dev.autoOpenBrowser,
-    overlay: config.dev.errorOverlay ? {
-      warnings: false,
-      errors: true
-    } : false,
+    overlay: config.dev.errorOverlay
+      ? {
+          warnings: false,
+          errors: true
+        }
+      : false,
     publicPath: config.dev.assetsPublicPath,
     proxy: config.dev.proxyTable,
     quiet: true, // necessary for FriendlyErrorsPlugin
@@ -47,11 +48,6 @@ const devWebpackConfig = merge(baseWebpackConfig, {
   plugins: [
     // 热加载插件，vue好像必要要开启
     new webpack.HotModuleReplacementPlugin(),
-    new HtmlWebpackPlugin({
-      filename: "index.html",
-      template: "index.html",
-      inject: true
-    }),
     // 复制自定义静态文件夹
     new CopyWebpackPlugin([{
       from: path.resolve(__dirname, "../static"),
@@ -79,13 +75,23 @@ module.exports = new Promise((resolve, reject) => {
         host = require("./ip").ip().address;
       }
 
-      let local = host ? `\r\n\r\n    - Local:   ${chalk.cyan(`http://localhost:${port}${getPathName(config.dev.pathName)}`)}\r\n    - Network: ` : ": ";
+      let local = host
+        ? `\r\n\r\n    - Local:   ${chalk.cyan(
+            `http://localhost:${port}${getPathName(config.dev.pathName)}`
+          )}\r\n    - Network: `
+        : ": ";
 
       // Add FriendlyErrorsPlugin
       devWebpackConfig.plugins.push(
         new FriendlyErrorsPlugin({
           compilationSuccessInfo: {
-            messages: [`Your application is running here${local}${chalk.cyan(`http://${ host || config.dev.host }:${port}${getPathName(config.dev.pathName)}`)}\r\n`]
+            messages: [
+              `Your application is running here${local}${chalk.cyan(
+                `http://${host || config.dev.host}:${port}${getPathName(
+                  config.dev.pathName
+                )}`
+              )}\r\n`
+            ]
           },
           onErrors: config.dev.notifyOnErrors ?
             utils.createNotifierCallback() : undefined
@@ -95,7 +101,9 @@ module.exports = new Promise((resolve, reject) => {
       if (isOpen) {
         let host_ = host ? "localhost" : config.dev.host;
 
-        devWebpackConfig.plugins.push(new OpenBrowserPlugin(isOpen, host_, port, config.dev.pathName));
+        devWebpackConfig.plugins.push(
+          new OpenBrowserPlugin(isOpen, host_, port, config.dev.pathName)
+        );
       }
 
       resolve(devWebpackConfig);

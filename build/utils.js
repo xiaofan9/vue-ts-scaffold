@@ -116,21 +116,19 @@ exports.createNotifierCallback = () => {
 exports.cacheConfig = (name, variables) => {
   if (!variables) {
     variables = {
-      "cache-loader": require('cache-loader/package.json').version,
-      "env": process.env.NODE_ENV,
-      "modern": !!process.env.MODERN_BUILD
-    }
+      "cache-loader": require("cache-loader/package.json").version,
+      env: process.env.NODE_ENV,
+      modern: !!process.env.MODERN_BUILD
+    };
   }
   return {
-    cacheDirectory: exports.resolve("node_modules\\.cache\\" + name + "-loader"),
+    cacheDirectory: exports.resolve(
+      "node_modules\\.cache\\" + name + "-loader"
+    ),
     cacheIdentifier: hash(variables)
   };
-}
+};
 
-exports.resolve = function (dir) {
+exports.resolve = function(dir) {
   return path.join(__dirname, "..", dir);
-}
-
-exports.isObject = function (arg) {
-  return Object.prototype.toString.call(arg) === "[object Object]"
-}
+};
