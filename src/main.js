@@ -1,21 +1,19 @@
 import Vue from "vue";
-import App from "./App";
-import router from "./router";
-import store from "./store";
+import App from "./App.vue";
+import router from "./router/index";
+import store from "./store/index";
 
-import "./registerServiceWorker";
+import "@/registerServiceWorker";
 
 Vue.config.productionTip = false;
 
 /* eslint-disable no-new */
 const app = new Vue({
   el: "#app",
+  data: { test: "1" },
+  store,
   router,
-  components: {
-    App
-  },
-  render: h => h(App),
-  store
+  render: h => h(App)
 });
 
 export default app;

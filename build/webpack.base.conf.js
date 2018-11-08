@@ -4,13 +4,16 @@ const utils = require("./utils");
 const config = require("../config");
 const vueLoaderConfig = require("./vue-loader.conf");
 const webpack = require("webpack");
-const isProd = process.env.NODE_ENV === "production";
-const isDev = process.env.NODE_ENV === "development";
 const FriendlyErrorsPlugin = require("friendly-errors-webpack-plugin");
 const { VueLoaderPlugin } = require("vue-loader");
-const { externals } = require("./add--cdn-externals");
+const { externals, cdn } = require("./add--cdn-externals");
+const CDNPlugin = require("./cdn-plugin");
+const html = require("./html");
 
+const isProd = process.env.NODE_ENV === "production";
+const isTest = process.env.NODE_ENV === "testing";
 const PORT = process.env.PORT && Number(process.env.PORT);
+const useThreads = isProd && config.build.parallel;
 
 // eslint 解析规则
 const eslint = () => [
@@ -62,7 +65,7 @@ module.exports = {
         test: /\.jsx?$/,
         use: [
           cache("babel"),
-          ...(isProd
+          ...(useThreads
             ? [
                 {
                   loader: "thread-loader"
@@ -109,10 +112,6 @@ module.exports = {
           limit: 10000,
           name: utils.assetsPath("fonts/[name].[hash:7].[ext]")
         }
-      },
-      {
-        test: /\.html$/,
-        loader: "ejs-loader"
       }
     ]
   },
@@ -140,7 +139,17 @@ module.exports = {
       ...(config.provide || {})
     }),
     // vue-loader 15.x 必须要引入的一个东东
-    new VueLoaderPlugin()
+    new VueLoaderPlugin(),
+    ...(!isTest
+      ? [
+          html,
+          // cdn 插件
+          new CDNPlugin({
+            cdn,
+            chunk: true
+          })
+        ]
+      : [])
   ]
 };
 

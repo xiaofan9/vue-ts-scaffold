@@ -24,10 +24,10 @@ module.exports = {
     bundleAnalyzerReport: process.env.npm_config_report,
     // css 源码映射
     productionSourceMap: true,
+    parallel: hasMultipleCores(),
     serviceWork: true,
     showLog: false // true：显示日志，false：不显示日志
   },
-  cdn: [],
   dev: {
     env: require("./dev.env"),
     port: process.env.PORT || 8080,
@@ -55,7 +55,6 @@ module.exports = {
     // 代码覆盖率测试
     coverage: false
   },
-  parallel: hasMultipleCores(),
   // 自动引入插件  key window全局变量 value 库名称
   provide: {},
   externals: {
@@ -68,7 +67,8 @@ module.exports = {
     //   cdn: "https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.min.js",
     //   window: "Vue"
     // }
-  }
+  },
+  cdn: []
 };
 
 function hasMultipleCores() {
