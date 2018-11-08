@@ -12,9 +12,6 @@ const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const safeParser = require("postcss-safe-parser");
 const CDNPlugin = require("./cdn-plugin");
 const path = require("path");
-// const {
-//   GenerateSW
-// } = require("workbox-webpack-plugin");
 
 const { cdn } = require("./add--cdn-externals");
 
@@ -44,12 +41,12 @@ const webpackConfig = merge(baseWebpackConfig, {
               : {
                   drop_debugger: true,
                   // drop_console: true,
-                  pure_funcs: ["console.log"]
+                  pure_funcs: ["console.log", "console.info", "console.debug"]
                 })
           }
         },
         sourceMap: config.build.productionSourceMap,
-        parallel: true,
+        parallel: config.build.parallel,
         cache: true
       }),
       // css 代码压缩
@@ -103,7 +100,7 @@ const webpackConfig = merge(baseWebpackConfig, {
       filename: utils.assetsPath("css/[name].[chunkhash:8].css"),
       chunkFilename: utils.assetsPath("css/[name].[chunkhash:8].css")
     }),
-    // 载入多页面html
+    // 生成html页面
     new HtmlWebpackPlugin({
       filename:
         process.env.NODE_ENV === "testing" ? "index.html" : config.build.index,
@@ -134,43 +131,6 @@ const webpackConfig = merge(baseWebpackConfig, {
       cdn,
       chunk: true
     })
-    // new GenerateSW({
-    //   cacheId: require("../package.json").name,
-    //   clientsClaim: true, // Service Worker 被激活后使其立即获得页面控制权
-    //   skipWaiting: true, // 强制等待中的 Service Worker 被激活
-    //   runtimeCaching: [
-    //     // 配置路由请求缓存 对应 workbox.routing.registerRoute
-    //     {
-    //       urlPattern: /.*\.js/, // 匹配文件
-    //       handler: 'networkFirst' // 网络优先
-    //     },
-    //     {
-    //       urlPattern: /.*\.css/,
-    //       handler: 'staleWhileRevalidate', // 缓存优先同时后台更新
-    //       options: {
-    //         // 这里可以设置 cacheName 和添加插件
-    //         cacheableResponse: {
-    //           statuses: [0, 200]
-    //         }
-    //       }
-    //     },
-    //     {
-    //       urlPattern: /.*\.(?:png|jpg|jpeg|svg|gif)/,
-    //       handler: 'cacheFirst', // 缓存优先
-    //       options: {
-    //         cacheName: require("../package.json").name + "--img-cache",
-    //         expiration: {
-    //           maxEntries: 50,
-    //           maxAgeSeconds: 60
-    //         }
-    //       }
-    //     },
-    //     {
-    //       urlPattern: /.*\.html/,
-    //       handler: 'networkFirst'
-    //     }
-    //   ]
-    // })
   ]
 });
 
@@ -184,6 +144,50 @@ if (config.build.productionGzip) {
       ),
       threshold: 10240,
       cache: true
+    })
+  );
+}
+
+if (config.build.serviceWork) {
+  const { GenerateSW } = require("workbox-webpack-plugin");
+
+  webpackConfig.plugins.push(
+    new GenerateSW({
+      cacheId: require("../package.json").name,
+      clientsClaim: true, // Service Worker 被激活后使其立即获得页面控制权
+      skipWaiting: true, // 强制等待中的 Service Worker 被激活
+      runtimeCaching: [
+        // 配置路由请求缓存 对应 workbox.routing.registerRoute
+        {
+          urlPattern: /.*\.js/, // 匹配文件
+          handler: "networkFirst" // 网络优先
+        },
+        {
+          urlPattern: /.*\.css/,
+          handler: "staleWhileRevalidate", // 缓存优先同时后台更新
+          options: {
+            // 这里可以设置 cacheName 和添加插件
+            cacheableResponse: {
+              statuses: [0, 200]
+            }
+          }
+        },
+        {
+          urlPattern: /.*\.(?:png|jpg|jpeg|svg|gif)/,
+          handler: "cacheFirst", // 缓存优先
+          options: {
+            cacheName: require("../package.json").name + "--img-cache",
+            expiration: {
+              maxEntries: 50,
+              maxAgeSeconds: 60
+            }
+          }
+        },
+        {
+          urlPattern: /.*\.html/,
+          handler: "networkFirst"
+        }
+      ]
     })
   );
 }
