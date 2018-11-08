@@ -18,7 +18,7 @@ class CDNPlugin {
 
     this.opt = opt;
     this.as = attr.as || as;
-    this.rel = this.as === "css" ? "stylesheet" : (attr.rel || rel); // 仅当as不等于js/css 时, rel有效
+    this.rel = this.as === "css" ? "stylesheet" : attr.rel || rel; // 仅当as不等于js/css 时, rel有效
     this.type = attr.type || type;
 
     this.cdns = cdn;
@@ -34,83 +34,105 @@ class CDNPlugin {
       // compilation.assets -> 所有的资源
       // compilation.chunks -> 所有的模块
       // chunk.isInitial() 或 chunk.canBeInitial() 检测该chuk是否是入口文件
-      compilation.hooks.htmlWebpackPluginAlterAssetTags.tapAsync(ID, async (data, cb) => {
-        let tmp = data.outputName.split(".");
+      if (!compilation.hooks.htmlWebpackPluginAlterAssetTags) return;
 
-        if (tmp[tmp.length - 1].includes("html")) {
-          tmp.pop();
-        }
+      compilation.hooks.htmlWebpackPluginAlterAssetTags.tapAsync(
+        ID,
+        async (data, cb) => {
+          let tmp = data.outputName.split(".");
 
-        let outputName = tmp.join(".");
-        if (this.only.length && !this.only.includes(outputName)) {
-          cb();
-
-          return;
-        }
-
-        if (this.chunk) {
-          let chunks = data.chunks;
-          let cdns = [];
-
-          for (let chunk of chunks) {
-            cdns = [...new Set([...cdns, ...chunk.files])]
+          if (tmp[tmp.length - 1].includes("html")) {
+            tmp.pop();
           }
 
-          let cdn_js = cdns.filter(cdn => {
-            let tmp = cdn.split(".");
-            if (tmp[tmp.length - 1] === "js") {
-              return true;
+          let outputName = tmp.join(".");
+          if (this.only.length && !this.only.includes(outputName)) {
+            cb();
+
+            return;
+          }
+
+          if (this.chunk) {
+            let chunks = data.chunks;
+            let cdns = [];
+
+            for (let chunk of chunks) {
+              cdns = [...new Set([...cdns, ...chunk.files])];
             }
 
-            return false;
-          });
+            let cdn_js = cdns.filter(cdn => {
+              let tmp = cdn.split(".");
+              if (tmp[tmp.length - 1] === "js") {
+                return true;
+              }
 
-          let cdn_css = cdns.filter(cdn => {
-            let tmp = cdn.split(".");
-            if (tmp[tmp.length - 1] === "css") {
-              return true;
-            }
+              return false;
+            });
 
-            return false;
-          });
+            let cdn_css = cdns.filter(cdn => {
+              let tmp = cdn.split(".");
+              if (tmp[tmp.length - 1] === "css") {
+                return true;
+              }
+
+              return false;
+            });
+
+            this.addCDN(data);
+
+            let isAs = this.isOptExist("as");
+            let isRel = this.isOptExist("rel");
+            let isType = this.isOptExist("type");
+
+            this.addCDN(data, cdn_css, {
+              as: isAs ? this.as : "style",
+              rel: isRel ? this.rel : "preload",
+              type: isType ? this.type : "text/css"
+            });
+
+            this.addCDN(data, cdn_js, {
+              as: isAs ? this.as : "script",
+              rel: isRel ? this.rel : "modulepreload",
+              type: isType ? this.type : "text/javascript"
+            });
+
+            cb();
+            return;
+          }
 
           this.addCDN(data);
-
-          let isAs = this.isOptExist("as");
-          let isRel = this.isOptExist("rel");
-          let isType = this.isOptExist("type");
-
-          this.addCDN(data, cdn_css, {
-            as: isAs ? this.as : "style",
-            rel: isRel ? this.rel : "preload",
-            type: isType ? this.type : "text/css"
-          });
-
-          this.addCDN(data, cdn_js, {
-            as: isAs ? this.as : "script",
-            rel: isRel ? this.rel : "modulepreload",
-            type: isType ? this.type : "text/javascript"
-          });
-
           cb();
-          return;
         }
-
-        this.addCDN(data);
-        cb()
-      })
-    })
+      );
+    });
   }
 
   addCDN(data, cdns = this.cdns, attr = {}) {
-    let type = attr.type || this.type;
-    let as = attr.as || this.as;
-    let rel = attr.rel || this.rel;
-    let prefix = attr.prefix || this.prefix;
+    let modify = !this.opt.as && !Object.keys(attr).length;
 
     for (let cdn of cdns) {
       if (!cdn) {
         continue;
+      }
+
+      let type = attr.type || this.type;
+      let as = attr.as || this.as;
+      let rel = attr.rel || this.rel;
+      let prefix = attr.prefix || this.prefix;
+
+      if (modify) {
+        let tmp = cdn.split(".");
+        let postfix = tmp[tmp.length - 1];
+
+        if (as !== postfix) {
+          as = postfix;
+          if (postfix === "css") {
+            type = "text/css";
+            rel = "stylesheet";
+          } else {
+            type = "text/plain";
+          }
+        }
       }
 
       let attributes = {};
@@ -124,31 +146,37 @@ class CDNPlugin {
       if (as !== "js") {
         attributes = {
           ...attributes,
-          href: prefix + cdn,
-          rel
+          href: prefix + cdn
+        };
+
+        if (rel) {
+          attributes = {
+            ...attributes,
+            rel
+          };
         }
       } else {
         // js -> script标签
         attributes = {
           ...attributes,
           src: prefix + cdn
-        }
+        };
       }
 
-      if (as !== "js" && as !== "css" && as) {
+      if (as !== "js" && as !== "css" && as && !modify) {
         attributes.as = as;
       }
 
       attributes = {
         ...attributes,
-        ...this.attr,
-      }
+        ...this.attr
+      };
 
       data.head.push({
-        tagName: as === "js" ? "script" : 'link',
+        tagName: as === "js" ? "script" : "link",
         closeTag: true,
         attributes
-      })
+      });
     }
   }
 

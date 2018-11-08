@@ -24,19 +24,8 @@ module.exports = {
     bundleAnalyzerReport: false,
     // css 源码映射
     productionSourceMap: true,
-    // cdn 配置，key 库名称 value window 全局变量
-    externals: {
-      // "vue": {
-      //   cdn: "",
-      //   window: ""
-      // }
-      // "vue": "Vue" 需手动引入cdn 或在cdn数组中加入cdn链接
-      // "vue": {
-      //   cdn: "https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.min.js",
-      //   window: "Vue"
-      // }
-    },
-    cdn: [],
+    serviceWork: true,
+    parallel: hasMultipleCores(),
     showLog: false // true：显示日志，false：不显示日志
   },
   dev: {
@@ -67,5 +56,25 @@ module.exports = {
     coverage: false
   },
   // 自动引入插件  key window全局变量 value 库名称
-  provide: {}
+  provide: {},
+  externals: {
+    // "vue": {
+    //   cdn: "",
+    //   window: ""
+    // }
+    // "Vue": "Vue" 需手动引入cdn 或在cdn数组中加入cdn链接
+    // vue: {
+    //   cdn: "https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.min.js",
+    //   window: "Vue"
+    // }
+  },
+  cdn: []
 };
+
+function hasMultipleCores() {
+  try {
+    return require("os").cpus().length > 1;
+  } catch (e) {
+    return false;
+  }
+}

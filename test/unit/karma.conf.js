@@ -15,7 +15,7 @@ module.exports = function(config) {
     frameworks: ["mocha"],
     reporters: ["spec", "coverage"],
     files: [
-      "../../node_modules/babel-polyfill/dist/polyfill.min.js",
+      "../../node_modules/@babel/polyfill/dist/polyfill.min.js",
       "./index.js"
     ],
     preprocessors: { "./index.js": ["webpack", "sourcemap"] },

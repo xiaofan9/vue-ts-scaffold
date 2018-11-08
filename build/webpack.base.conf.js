@@ -6,32 +6,37 @@ const vueLoaderConfig = require("./vue-loader.conf");
 const webpack = require("webpack");
 const isProd = process.env.NODE_ENV === "production";
 const isDev = process.env.NODE_ENV === "development";
-const multipage = require("./multipage");
 const FriendlyErrorsPlugin = require("friendly-errors-webpack-plugin");
-const {
-  VueLoaderPlugin
-} = require("vue-loader");
+
+const multipage = require("./multipage");
+const CDNPlugin = require("./cdn-plugin");
+const { VueLoaderPlugin } = require("vue-loader");
+const { externals, cdn } = require("./add--cdn-externals");
 
 const PORT = process.env.PORT && Number(process.env.PORT);
+const useThreads = isProd && config.build.parallel;
 
 // eslint 解析规则
-const eslint = () => [{
-  test: /\.(js|vue)$/,
-  loader: "eslint-loader",
-  enforce: "pre",
-  include: [utils.resolve("src"), utils.resolve("test")],
-  options: {
-    formatter: require("eslint-friendly-formatter"),
-    emitWarning: !config.dev.showEslintErrorsInOverlay
+const eslint = () => [
+  {
+    test: /\.(js|vue)$/,
+    loader: "eslint-loader",
+    enforce: "pre",
+    include: [utils.resolve("src"), utils.resolve("test")],
+    options: {
+      formatter: require("eslint-friendly-formatter"),
+      emitWarning: !config.dev.showEslintErrorsInOverlay
+    }
   }
-}];
+];
 
 module.exports = {
   entry: multipage.entry,
   output: {
     filename: "[name].js",
-    publicPath: isProd ?
-      config.build.assetsPublicPath : config.dev.assetsPublicPath
+    publicPath: isProd
+      ? config.build.assetsPublicPath
+      : config.dev.assetsPublicPath
   },
   resolve: {
     // 添加 ts，tsx 后缀
@@ -57,11 +62,19 @@ module.exports = {
       ...(config.dev.useEslint ? eslint() : []),
       {
         test: /\.jsx?$/,
-        use: [cache("babel"), ...(isProd ? [{
-          loader: 'thread-loader'
-        }] : []), {
-          loader: "babel-loader"
-        }],
+        use: [
+          cache("babel"),
+          ...(useThreads
+            ? [
+                {
+                  loader: "thread-loader"
+                }
+              ]
+            : []),
+          {
+            loader: "babel-loader"
+          }
+        ],
         include: [utils.resolve("src"), utils.resolve("test")]
       },
       {
@@ -74,11 +87,6 @@ module.exports = {
           }
         ],
         exclude: file => /node_modules/.test(file) && !/\.vue\.js/.test(file)
-      },
-      {
-        test: /\.xml$/,
-        loader: "xml-loader",
-        include: [utils.resolve("src")]
       },
       {
         test: /\.(png|jpe?g|gif|svg)(\?.*)?$/,
@@ -103,6 +111,10 @@ module.exports = {
           limit: 10000,
           name: utils.assetsPath("fonts/[name].[hash:7].[ext]")
         }
+      },
+      {
+        test: /\.html$/,
+        loader: "ejs-loader"
       }
     ]
   },
@@ -119,6 +131,9 @@ module.exports = {
     tls: "empty",
     child_process: "empty"
   },
+  externals: {
+    ...externals
+  },
   // webpack 4 提供的mode 模式 production/development，有默认配置，具体参考官方文档。
   mode: process.env.NODE_ENV === "production" ? "production" : "development",
   plugins: [
@@ -127,7 +142,13 @@ module.exports = {
       ...(config.provide || {})
     }),
     // vue-loader 15.x 必须要引入的一个东东
-    new VueLoaderPlugin()
+    new VueLoaderPlugin(),
+    ...multipage.html,
+    // cdn 插件，依赖于HtmlWebpackPlugin插件
+    new CDNPlugin({
+      cdn: cdn,
+      chunk: true
+    })
   ]
 };
 
@@ -135,5 +156,5 @@ function cache(name) {
   return {
     loader: "cache-loader",
     options: utils.cacheConfig(name)
-  }
+  };
 }
