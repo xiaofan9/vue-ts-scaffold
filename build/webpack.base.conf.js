@@ -4,15 +4,14 @@ const utils = require("./utils");
 const config = require("../config");
 const vueLoaderConfig = require("./vue-loader.conf");
 const webpack = require("webpack");
-const isProd = process.env.NODE_ENV === "production";
-const isDev = process.env.NODE_ENV === "development";
 const FriendlyErrorsPlugin = require("friendly-errors-webpack-plugin");
-
 const multipage = require("./multipage");
 const CDNPlugin = require("./cdn-plugin");
 const { VueLoaderPlugin } = require("vue-loader");
 const { externals, cdn } = require("./add--cdn-externals");
 
+const isProd = process.env.NODE_ENV === "production";
+const isTest = process.env.NODE_ENV === "testing";
 const PORT = process.env.PORT && Number(process.env.PORT);
 const useThreads = isProd && config.build.parallel;
 
@@ -111,10 +110,6 @@ module.exports = {
           limit: 10000,
           name: utils.assetsPath("fonts/[name].[hash:7].[ext]")
         }
-      },
-      {
-        test: /\.html$/,
-        loader: "ejs-loader"
       }
     ]
   },
@@ -143,12 +138,16 @@ module.exports = {
     }),
     // vue-loader 15.x 必须要引入的一个东东
     new VueLoaderPlugin(),
-    ...multipage.html,
-    // cdn 插件，依赖于HtmlWebpackPlugin插件
-    new CDNPlugin({
-      cdn: cdn,
-      chunk: true
-    })
+    ...(!isTest
+      ? [
+          ...multipage.html,
+          // cdn 插件，依赖于HtmlWebpackPlugin插件
+          new CDNPlugin({
+            cdn: cdn,
+            chunk: true
+          })
+        ]
+      : [])
   ]
 };
 

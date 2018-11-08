@@ -31,7 +31,7 @@ module.exports = {
   dev: {
     env: require("./dev.env"),
     port: process.env.PORT || 8080,
-    pathName: "",
+    pathName: "test.html",
     host: "0.0.0.0",
     // 自动打开浏览器
     autoOpenBrowser: true,

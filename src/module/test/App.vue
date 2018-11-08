@@ -1,14 +1,17 @@
 <template>
   <div id="app">
-    <iframe src="index.html"></iframe>
-    <img src="../../assets/logo.png">
+    <img src="@/common/assets/logo.png">
+    <router-view />
   </div>
 </template>
 
 <script>
-export default {
-  name: "App"
-};
+import { Vue, Component } from "vue-property-decorator";
+
+@Component
+class App extends Vue {}
+
+export default App;
 </script>
 
 <style>
