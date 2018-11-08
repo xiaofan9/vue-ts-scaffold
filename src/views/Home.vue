@@ -8,18 +8,20 @@
 </template>
 
 <script lang="ts">
-import RC from "./renderComponent.vue";
+import RC from "../components/renderComponent.vue";
 import TestMixin from "../mixins/test-mixin";
 import { Getter } from "vuex-class";
 import { Vue, Component } from "vue-property-decorator";
+
 @Component({
   components: {
     RC
   },
   mixins: [TestMixin]
 })
-export default class HelloWorld extends Vue {
-  @Getter info;
+class Home extends Vue {
+  @Getter
+  info;
 
   msg: string = "这里以下的整体是路由区域";
 
@@ -27,6 +29,8 @@ export default class HelloWorld extends Vue {
     console.log("这是 _.assign({})", Object.assign({}));
   }
 }
+
+export default Home;
 </script>
 
 <style scoped>
