@@ -1,8 +1,9 @@
 体积：
   1、提前提取特定的第三方包（dll）,使用webpack插件 DllPlugin 和 DllReferencePlugin，当多个项目同引一个库时推荐使用（我的见解
   2、外部引入模块（cdn，webpack配置属性externals
-  3、尽量模块化引入库/框架，lodash类库最好按需加载，lodash-webpack-plugin 和 babel-plugin-lodash 组合使用可以将全路径引用自动改为按需加载，但仍需每个用到的文件import 一遍，更可取的是，将项目所需的方法，统一引入，按需添加，组建出本地 lodash 类库，然后 export 给框架层，或者直接使用webpack ProvidePlugin 插件 让webpack 自动全局注入，懒人终极方案
-  4、确定类库引入必要性，避免引而不用
+  3、确定类库引入必要性，避免引而不用
+  4、尽量模块化引入库/框架；
+    lodash 这类库最好按需加载，lodash-webpack-plugin 和 babel-plugin-lodash 组合使用可以将全路径引用自动改为按需加载，但仍需每个用到的文件import 一遍，更可取的是，将项目所需的方法，统一引入，按需添加，组建出本地 lodash 类库，然后 export 给框架层，或者直接使用webpack ProvidePlugin 插件 让webpack 自动全局注入，懒人终极方案。
   5、尽可能引入更合适的包
   6、按需加载，webpack3 import("./xxx"); webpack2 () => import("./xxx");
   7、压缩混淆并移除console
